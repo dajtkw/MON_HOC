@@ -10,7 +10,7 @@
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Quản lý sản phẩm</a>
+        <a class="navbar-brand" href="/webbanhang/Product/">Quản lý sản phẩm</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" datatarget="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle
 navigation">
@@ -26,6 +26,9 @@ navigation">
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/webbanhang/Category/">Danh sách danh mục</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/webbanhang/Product/cart/">Đơn hàng</a>
                 </li>
             </ul>
         </div>

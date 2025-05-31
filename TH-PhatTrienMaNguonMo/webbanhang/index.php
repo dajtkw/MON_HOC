@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once 'app/models/ProductModel.php';
 
 $url = $_GET['url'] ?? '';
@@ -6,7 +7,7 @@ $url = rtrim($url, '/');
 $url = filter_var($url, FILTER_SANITIZE_URL);
 $url = explode('/', $url);
 // Kiểm tra phần đầu tiên của URL để xác định controller
-$controllerName = isset($url[0]) && $url[0] != '' ? ucfirst($url[0]) . 'Controller' : 'ProductController';
+$controllerName = isset($url[0]) && $url[0] != '' ? ucfirst(string: $url[0]) . 'Controller' : 'ProductController';
 // Kiểm tra phần thứ hai của URL để xác định action
 $action = isset($url[1]) && $url[1] != '' ? $url[1] : 'index';
 // die ("controller=$controllerName - action=$action");

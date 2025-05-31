@@ -7,6 +7,7 @@ class ProductController
 {
     private $productModel;
     private $db;
+
     public function __construct()
     {
         $this->db = (new Database())->getConnection();
@@ -162,6 +163,86 @@ class ProductController
             ];
         }
         header('Location: /webbanhang/Product/cart');
+    }
+
+    public function cart()
+    {
+        $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
+        include 'app/views/product/cart.php';
+    }
+    public function checkout()
+    {
+        include 'app/views/product/checkout.php';
+    }
+
+    public function processCheckout()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $name = $_POST['name'];
+            $phone = $_POST['phone'];
+            $province_code = $_POST['province'] ?? ''; // Mã tỉnh/thành
+            $district_code = $_POST['district'] ?? ''; // Mã quận/huyện
+            $ward_code = $_POST['ward'] ?? '';         // Mã phường/xã
+            $street_address = $_POST['street_address'] ?? '';
+
+            // Lấy chuỗi địa chỉ đầy đủ đã được JavaScript ghép lại (chứa tên)
+            $full_address = trim($_POST['full_address'] ?? '');
+
+
+            // Kiểm tra dữ liệu đầu vào
+            if (empty($name) || empty($phone) || empty($province_code) || empty($district_code) || empty($ward_code) || empty($street_address)) {
+                echo "Vui lòng điền đầy đủ thông tin.";
+                // Có thể redirect lại trang checkout với thông báo lỗi
+                // header('Location: /webbanhang/Product/checkout?error=missing_fields');
+                return;
+            }
+            // Kiểm tra giỏ hàng
+            if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
+                echo "Giỏ hàng trống.";
+                return;
+            }
+
+            $address = $full_address;
+            $this->db->beginTransaction();
+            try {
+                // Lưu thông tin đơn hàng vào bảng orders
+                $query = "INSERT INTO orders (name, phone, address) VALUES (:name,
+:phone, :address)";
+                $stmt = $this->db->prepare($query);
+                $stmt->bindParam(':name', $name);
+                $stmt->bindParam(':phone', $phone);
+                $stmt->bindParam(':address', $address);
+                $stmt->execute();
+                $order_id = $this->db->lastInsertId();
+                // Lưu chi tiết đơn hàng vào bảng order_details
+                $cart = $_SESSION['cart'];
+                foreach ($cart as $product_id => $item) {
+                    $query = "INSERT INTO order_details (order_id, product_id,
+quantity, price) VALUES (:order_id, :product_id, :quantity, :price)";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':order_id', $order_id);
+                    $stmt->bindParam(':product_id', $product_id);
+                    $stmt->bindParam(':quantity', $item['quantity']);
+                    $stmt->bindParam(':price', $item['price']);
+                    $stmt->execute();
+                }
+                // Xóa giỏ hàng sau khi đặt hàng thành công
+                unset($_SESSION['cart']);
+                // Commit giao dịch
+                $this->db->commit();
+                // Chuyển hướng đến trang xác nhận đơn hàng
+                header('Location: /webbanhang/Product/orderConfirmation');
+            } catch (Exception $e) {
+                // Rollback giao dịch nếu có lỗi
+                $this->db->rollBack();
+                echo "Đã xảy ra lỗi khi xử lý đơn hàng: " . $e->getMessage();
+            }
+        }
+    }
+
+    public function orderConfirmation()
+    {
+        include 'app/views/product/orderConfirmation.php';
     }
 }
 ?>
