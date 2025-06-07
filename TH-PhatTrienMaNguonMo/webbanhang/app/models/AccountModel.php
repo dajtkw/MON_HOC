@@ -34,4 +34,25 @@ VALUES (:username,:password, :role)";
         }
         return false;
     }
+
+    public function updatePasswordByUsername($username, $password)
+    {
+        $query = "UPDATE " . $this->table_name . " SET password = :password WHERE username = :username";
+        
+        $stmt = $this->conn->prepare($query);
+        
+        // Làm sạch dữ liệu
+        $password = htmlspecialchars(strip_tags($password));
+        $username = htmlspecialchars(strip_tags($username));
+        
+        // Bind parameters
+        $stmt->bindParam(':password', $password);
+        $stmt->bindParam(':username', $username);
+        
+        if ($stmt->execute()) {
+            return true;
+        }
+        
+        return false;
+    }
 }
